@@ -1,0 +1,9 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "Lyrics-Match/front-end",
+        "use": "@vercel/static-build"
+      }
+    ]
+  }
