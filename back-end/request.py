@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 from urllib.request import urlopen
 
+test = 0
 
 url = "https://genius.com/songs/all"
 
@@ -40,7 +41,7 @@ else:
     print("No matching elemnt found.")
 
 
-# ----------- Gets lyrics of a song --------------------
+# ----------- Gets the source code of the lyrics of a song --------------------
 
 result = requests.get(lyrics_url)                                                       # sends an HTML request to the website and gets the code           
 soupLyrics = BeautifulSoup(result.text, "html.parser")                                  # parses html code into variable
@@ -50,6 +51,7 @@ print("PRINTING!")
 print(lyrics.prettify()) 
 
 
+# ----------- Rids of non-lyrics from source code (ie tags <>)  --------------------
 isCopying = True
 stringLyrics = ""
 
