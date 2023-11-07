@@ -2,8 +2,6 @@ from bs4 import BeautifulSoup
 import requests
 from urllib.request import urlopen
 
-test = 0
-
 url = "https://genius.com/songs/all"
 
 result = requests.get(url)      # sends an HTML request to the website and gets the code           
