@@ -51,21 +51,16 @@ print(lyrics.prettify())
 
 # ----------- Rids of non-lyrics from source code (ie tags <>)  --------------------
 isCopying = True
-stringLyrics = ""
+stringLyrics = ""                       # Lyrics will end up not completely formatted (can't differentiate new lines for lyrics)
 
-print("Hello friend")
-for lyric in lyrics:
-    print("yes: " + str(lyric))
-    if lyric.text == '<':
-        print("HELLOOOO")
+for lyric in str(lyrics):
+    if lyric == '<':
         isCopying = False
-    elif lyric.text == '>':
-        isCopying = True
         
     if isCopying:
         stringLyrics += str(lyric)
         
-
+    if lyric == '>':
+        isCopying = True
+        
 print(stringLyrics)
-
-# print(lyrics)
