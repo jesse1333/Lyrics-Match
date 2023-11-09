@@ -1,38 +1,121 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import requests
+from bs4 import BeautifulSoup
 
-
-# Initialize the WebDriver
 driver = webdriver.Chrome()
 
-# Navigate to the URL of the web page you want to inspect
-url = 'https://genius.com/Luis-fonsi-and-daddy-yankee-despacito-remix-lyrics'
-driver.get(url)
-
-# Retrieve the HTML code of the page
-page_source = driver.page_source
-
-# Print or save the HTML code as needed
-# print(page_source)
+driver.get("https://genius.com/Luis-fonsi-and-daddy-yankee-despacito-remix-lyrics")
 
 
-time.sleep(10)
+# ----------- Gets the source code of the lyrics of a song (BS4) --------------------
 
-# inspect elements have different XPATH values for differnt pages. I need to figure out how to get the "correct" one
-# All lyrics are found within Lyrics__Container-sc-1ynbvzw-1 kUgSbL though
+# lyrics = driver.find_element(By.CLASS_NAME, 'Lyrics__Container-sc-1ynbvzw-1 kUgSbL')
 
-lyrics = driver.find_elements(By.CLASS_NAME, "Lyrics__Container-sc-1ynbvzw-1 kUgSbL")
+
+# print(lyrics)
 
 
 
-# lyrics = driver.find_elements_by_class_name("Lyrics__Container-sc-1ynbvzw-1 kUgSbL")
-
-# for lyric in lyrics:
-#     lyric = lyrics.find_element_by_xpath('.//*[@id="lyrics-root"]/div[3]')
+try:
+    element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, '.Lyrics__Container-sc-1ynbvzw-1'))
+    )
+    print("Element has appeared!")
     
-print(lyrics)
+    lyrics = driver.find_elements(By.CSS_SELECTOR, '.Lyrics__Container-sc-1ynbvzw-1.kUgSbL')
+    
+    for lyric in lyrics:
+        print(lyric.text)
+    
+    # You can now proceed with further actions involving this element
+except Exception as e:
+    print(f"An error occurred: {e}")
+    
+    
+# try:
+#     element = WebDriverWait(driver, 10).until(
+#         EC.presence_of_element_located((By.CSS_SELECTOR, '.ReferentFragmentdesktop__Highlight-sc-110r0d9-1 jAzSMw'))
+#     )
+#     print("Element has appeared!")
+    
+#     lyrics = driver.find_elements(By.CSS_SELECTOR, '.ReferentFragmentdesktop__Highlight-sc-110r0d9-1 jAzSMw')
+#     for lyric in lyrics:
+#         print(lyric.text)
+    
+#     # You can now proceed with further actions involving this element
+# except Exception as e:
+#     print(f"An error occurred: {e}")
 
 
-# Close the browser
+# # ----------- Rids of non-lyrics from source code (ie tags <>)  --------------------
+# isCopying = True
+# stringLyrics = ""                       # Lyrics will end up not completely formatted (can't differentiate new lines for lyrics)
+
+# for lyric in str(lyrics):
+#     if lyric == '<':
+#         isCopying = False
+        
+#     if isCopying:
+#         stringLyrics += str(lyric)
+        
+#     if lyric == '>':
+#         isCopying = True
+        
+# print(stringLyrics)
+
+
+
 driver.quit()
+
+print("END")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # ----------- Gets the source code of the lyrics of a song (BS4) --------------------
+# result = requests.get("https://genius.com/Eminem-rap-god-lyrics")                                                       # sends an HTML request to the website and gets the code           
+# soupLyrics = BeautifulSoup(result.text, "html.parser")                                  # parses html code into variable
+# lyrics = soupLyrics.find('div', class_='Lyrics__Container-sc-1ynbvzw-1 kUgSbL')         # finds lyrics within code
+
+
+# # ----------- Rids of non-lyrics from source code (ie tags <>)  --------------------
+# isCopying = True
+# stringLyrics = ""                       # Lyrics will end up not completely formatted (can't differentiate new lines for lyrics)
+
+# for lyric in str(lyrics):
+#     if lyric == '<':
+#         isCopying = False
+        
+#     if isCopying:
+#         stringLyrics += str(lyric)
+        
+#     if lyric == '>':
+#         isCopying = True
+        
+# print(stringLyrics)
+
+
+# driver.quit()
+
+# print("END")
