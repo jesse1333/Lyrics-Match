@@ -1,22 +1,44 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-import requests
 from bs4 import BeautifulSoup
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+from time import sleep
 
+
+# --------------- Selenium Set-up -----------------
 driver = webdriver.Chrome()
+lyricsDriver = webdriver.Chrome()
 
 driver.get("https://genius.com/songs/all")
 
 # Variable Declarations
+song_url = ""
+string_song_name = ""
+string_lyrics = ""
 
-primary_artist_list = []
-song_name_list = []
-song_url_list = []
-song_lyrics_list = []
-stringLyrics = ""
 
+# --------------- MongoDB Set-up -----------------
+
+uri = "mongodb+srv://jesse1333:Justin0122_!@songdatacluster.jdvhjag.mongodb.net/?retryWrites=true&w=majority" # Uniform Resource Identifier 
+                                                                                                              # In the case of MongoDB, it has the info 
+                                                                                                              # needed to locate and connect to the database
+
+# Create a new client and connect to the server (Client is just a computer that requests access to the server)
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+# Send a ping to confirm a successful connection
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+    
+db = client["song_library_db"]         # Gets the database (song_library_db)
+collection = db["songs"]               # Gets the collection (songs)
+    
 # ----------- Gets Song Name, Artist, and URL from Genius.com (Selenium) --------------------
 
 primary_artists = driver.find_elements(By.CLASS_NAME, "primary_artist_name")
@@ -53,91 +75,68 @@ def get_URLs():
 
 existing_urls = get_URLs()              # puts all URLs from song_urls.txt into a list
 
+
 for i in range(len(primary_artists)):
-    # check the song_url
-    insert_index, is_duplicate = binary_search(existing_urls, link_element[i].get_attribute('href'))
+    
+    # ----------- Checks for duplicate song urls & inserts non-duplicates  --------------------
+    song_url = link_element[i].get_attribute('href')
+    insert_index, is_duplicate = binary_search(existing_urls, song_url)
     if (is_duplicate):
         continue
     
     else:
-        existing_urls.insert(insert_index, link_element[i].get_attribute('href'))
+        # ------------------ Add URL to the existing list of links --------------------
+        existing_urls.insert(insert_index, song_url)
         with open('back-end/song_urls.txt', 'w') as file:
             file.write('\n'.join(existing_urls))
         existing_urls = get_URLs()        
-    
-        # # if not a duplicate, replace the rest of the code with adding directly to mongoDB
-        # primary_artist_list.append(primary_artists[i].text)
-        # song_name_list.append(song_names[i].text)
-        # song_url_list.append(link_element[i].get_attribute('href'))
         
+        # ----------- Gets the source code of the lyrics of a song (BS4) --------------------   
+        index = 0
+        lyricsDriver.get(song_url)
         
-        # try:
-        #     song_name_list[i] = song_name_list[i].split(' – ')[1].strip()           # split splits the string upon seeing '-' into a dictionary with n elements
-        #     song_name_list[i] = song_name_list[i].replace('Lyrics', '')
-
-        # except IndexError:
-        #     print("Song name not found.")
-
-
-# ----------- Checks for duplicate song urls & inserts non-duplicates  --------------------
-
-# run a binary search to find song_urls in 'song_urls.txt' (returns true or false)
-
-
-
-
-
-
-# def add_songs_to_file(song_urls):
-#     # Read existing song URLs from the text file
-#     with open('C:\\Users\\owner\\Documents\\GitHub\\Lyrics-Match\\back-end\\song_urls.txt', 'r') as file:
-#         existing_urls = file.readlines()
-#     existing_urls = [url.strip() for url in existing_urls]  # Removes newline characters and whitespace
-
-#     # Add non-duplicate song URLs from the array to the list using binary search
-#     for url in song_urls:
-#         url = url.strip()  
-#         insertion_index = binary_search(existing_urls, url)
-#         if insertion_index == len(existing_urls) or existing_urls[insertion_index] != url:
-#             existing_urls.insert(insertion_index, url)
-
-#     # Sort the list of URLs alphabetically
-#     existing_urls.sort()
-
-#     # Write the updated list back to the text file
-#     with open('C:\\Users\\owner\\Documents\\GitHub\\Lyrics-Match\\back-end\\song_urls.txt', 'w') as file:
-#         file.write('\n'.join(existing_urls))
+        # note: song_url works
+        # note: there are 49 songs (i)
         
-
-
-
-
-# # ----------- Gets the source code of the lyrics of a song (BS4) --------------------               # DONT DO THIS IF DUPLICATE LINK
-# index = 0
-# for url in song_url_list:
-#     driver.get(url)
-    
-#     try:
-#         lyrics = WebDriverWait(driver, 10).until(
-#             EC.presence_of_element_located((By.CSS_SELECTOR, '.Lyrics__Container-sc-1ynbvzw-1'))            # loads page until lyrics are found
-#         )
-#         print("Element has appeared!")
-        
-#         lyrics = driver.find_elements(By.CSS_SELECTOR, '.Lyrics__Container-sc-1ynbvzw-1.kUgSbL')            # finds the lyrics
-        
-#         for lyric in lyrics:
-#             stringLyrics += lyric.text
-#             stringLyrics += "\n"
+        string_lyrics = ""
+        try:
+            lyrics = WebDriverWait(lyricsDriver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '.Lyrics__Container-sc-1ynbvzw-1'))            # loads page until lyrics are found
+            )
+            print("Lyrics Container element has appeared!")
             
-#         song_lyrics_list.append(stringLyrics)
+            lyrics = lyricsDriver.find_elements(By.CSS_SELECTOR, '.Lyrics__Container-sc-1ynbvzw-1.kUgSbL')            # finds the lyrics
+            
+            for lyric in lyrics:
+                string_lyrics += lyric.text
+                string_lyrics += "\n"
+                
+            index += 1
+
+        except Exception as e:                                                                                  # if lyrics are not found
+            print(f"An error occurred: {e}")
+    
+    
+        # ------------------ Gets the song name --------------------   
+        try:
+            string_song_name = song_names[i].text.split(' – ')[1].strip()           # split splits the string upon seeing '-' into a dictionary with n elements
+            string_song_name = string_song_name.replace('Lyrics', '')               # gets rid of the word "Lyrics"
+            string_song_name = string_song_name[:-1]                                # gets rid of extra space at the end of the string
+
+        except IndexError:
+            print("Song name not found.")
+            
+            
+        # --------------- Adds the data into MongoDB -------------------- 
+        song = {
+            "title": string_song_name,
+            "artist": primary_artists[i].text,
+            "lyrics": string_lyrics,    
+        }    
         
-#         print(song_lyrics_list[index])
-#         index += 1
-    
-#     except Exception as e:                                                                                  # if lyrics are not found
-#         print(f"An error occurred: {e}")
-    
-    
+        collection.insert_one(song)            # Adds a song document to the collection
+
+
 print("end")
 driver.quit()
-
+lyricsDriver.quit()
