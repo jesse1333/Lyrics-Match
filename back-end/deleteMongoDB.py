@@ -1,3 +1,5 @@
+# THIS IS JUST A TEST FILE TO TEST MONGODB
+
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
@@ -18,9 +20,6 @@ except Exception as e:
 
 db = client["song_library_db"]         # Gets the database (song_library_db)
 collection = db["songs"]               # Gets the collection (songs)
-
-
-
 
 collection.delete_many({})
 
