@@ -1,8 +1,10 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import axios from 'axios';
 import './App.css'; // Import your CSS file
 import logo from './assets/microphone.svg'
 
 function App() {
+  // Orange Border Component
   const OrangeBorder = {
     top: '0', 
     left: '0',
@@ -13,9 +15,35 @@ function App() {
     marginTop: '0',
     zIndex: '-1'
   };
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       axios.post('/', { userLyrics: data}) // Assumes React is running on the same server as Flask
+  //       .then(response => {
+  //         setSongObjects(response.data)
+  //         console.log("Data receieved " + songObjects)
+  //       })
+  //       .catch(error => {
+  //         console.error('Error fetching data:', error);
+  //       });
+        
+  //       // Handle the response data here
+  //       console.log(response.data);
+  //     } catch (error) {
+  //       // Handle any errors here
+  //       console.error('Error fetching data:', error);
+  //     }
+  //   };
+
+  //   // Call the function to fetch data when the component mounts
+  //   fetchData();
+  // }, []);
   
+  // Search Bar Component (Sends Axios Data)
   const SearchBar = (left) => {
     const [data, setData] = useState()
+    const [songObjects, setSongObjects] = useState()
 
     const inputStyle= { position: 'absolute', 
       top: '50%',
@@ -25,10 +53,18 @@ function App() {
 
     const handleKeyDown = (event) => {
       if (event.key === 'Enter') {
-        event.preventDefault(); // Prevent the default Enter key behavior (e.g., form submission)
-        document.getElementById("lyrics-input").value = ""; // Clear the input value
+        event.preventDefault(); 
+        document.getElementById("lyrics-input").value = "";
 
-
+        // ADD CODE THAT SENDS DATA UP TO BACKEND
+        axios.post('/', { userLyrics: data}) // Assumes React is running on the same server as Flask
+        .then(response => {
+          setSongObjects(response.data)
+          console.log("Data receieved " + songObjects)
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
         setData('')
       }
     }
@@ -36,7 +72,7 @@ function App() {
     const handleChange = (event) => {
       setData(event.target.value);
     }
-    
+
     return (
       <div class="form__group field" style={inputStyle}>
         <input type="input" onChange={handleChange} onKeyDown={handleKeyDown} class="form__field" placeholder="lyrics" name="lyrics-input" id='lyrics-input' required />
@@ -46,8 +82,10 @@ function App() {
     );
   };
 
-  const Square = ({left, right, flex}) => {
-    const squareStyle = {
+
+  // Album Component
+  const Album = ({imageSrc, left, right, flex}) => {
+    const albumStyle = {
       left: left,
       right: right,
       top: '55%',
@@ -55,14 +93,18 @@ function App() {
     };
 
     return (
-      <div className="square" style={squareStyle}>     
-      </div>
+      <div className="album-container">
+      <img src={imageSrc} style={albumStyle} alt="Album Cover" />
+    </div>
     );
   };
+
+  const [album_1, set_album_1] = useState()
+  const [album_2, set_album_2] = useState()
+  const [album_3, set_album_3] = useState()
   
+  // Website Render Method
   return (
-
-
     <div className="App">
     <div className="orange-border" style={{...OrangeBorder }}></div>
 
@@ -74,13 +116,12 @@ function App() {
       <div className="search-bar-container">
         <SearchBar></SearchBar>
       </div>
-      <div className="albumns-container">
-      <Square></Square>
-      <Square></Square>
-      <Square></Square>
+      <div className="albums-container">
+      <Album></Album>
+      <Album></Album>
+      <Album></Album>
 
       </div>
-
     </div>
   );
 }

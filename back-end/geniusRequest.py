@@ -1,4 +1,5 @@
 import re
+import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -169,13 +170,34 @@ while True:
             except IndexError:
                 print("Song name not found.")
                 
+            # ------------------ Gets the albumn image --------------------
+            try:
+                # Find the image element by its class names separately
+                image_element = lyricsDriver.find_element(By.CLASS_NAME, "SizedImage__Image-sc-1hyeaua-1")
+
+                # Get the source URL of the image
+                image_source_url = image_element.get_attribute('src')
+
+                # Download the image using the requests library
+                if image_source_url:
+                    image_content = requests.get(image_source_url).content
+                    print('Albumn Image Found')
+                    
+                else:
+                    print('Image source URL not found')
+
+            except Exception as e:
+                print(f"Error: {e}")
+                driver.quit()    
+                
                 
             # --------------- Adds the data into MongoDB -------------------- 
             song = {
                 "title": string_song_name,
                 "artist": primary_artists[i].text,
                 "lyrics": string_lyrics,    
-                "lyrics_url": song_url
+                "lyrics_url": song_url,
+                "albumn_image_data" : image_content
             }    
             
             collection.insert_one(song)            # Adds a song document to the collection
