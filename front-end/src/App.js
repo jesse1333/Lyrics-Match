@@ -1,52 +1,87 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import './App.css'; // Import your CSS file
-import logo from './assets/microphone.svg'
+import logo from './assets/microphone.svg';
 
 function App() {
   const OrangeBorder = {
-    top: '0', 
+    top: '0',
     left: '0',
     width: '100%',
     height: '40vh',
     backgroundColor: 'orange',
-    position: 'absolute', 
+    position: 'absolute',
     marginTop: '0',
-    zIndex: '-1'
+    zIndex: '-1',
   };
-  
-  const SearchBar = (left) => {
-    const [data, setData] = useState()
 
-    const inputStyle= { position: 'absolute', 
+  const SearchBar = () => {
+    const [data, setData] = useState('');
+    const [results, setResults] = useState([]); // State to hold search results
+
+    const inputStyle = {
+      position: 'absolute',
       top: '50%',
       left: '50%',
-      transform: 'translate(-50%, -50%)'
-    }
+      transform: 'translate(-50%, -50%)',
+    };
 
-    const handleKeyDown = (event) => {
+    const handleKeyDown = async (event) => {
       if (event.key === 'Enter') {
-        event.preventDefault(); // Prevent the default Enter key behavior (e.g., form submission)
-        document.getElementById("lyrics-input").value = ""; // Clear the input value
+        event.preventDefault();
 
+        const response = await fetch('http://127.0.0.1:5000/search', { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query: data }),
+        });
+        
+        if (response.ok) {
+          const results = await response.json();
+          setResults(results); // Update state with the fetched results
+        } else {
+          console.error('Error fetching results');
+        }
 
-        setData('')
+        setData(''); // Clear input value
       }
-    }
+    };
 
     const handleChange = (event) => {
       setData(event.target.value);
-    }
-    
+    };
+
     return (
-      <div class="form__group field" style={inputStyle}>
-        <input type="input" onChange={handleChange} onKeyDown={handleKeyDown} class="form__field" placeholder="lyrics" name="lyrics-input" id='lyrics-input' required />
-        <label for="lyrics-input" class="form__label">Lyrics:</label>
-        <h1> {data} </h1>
+      <div className="form__group field" style={inputStyle}>
+        <input
+          type="input"
+          value={data}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          className="form__field"
+          placeholder="lyrics"
+          name="lyrics-input"
+          id="lyrics-input"
+          required
+        />
+        <label htmlFor="lyrics-input" className="form__label">Lyrics:</label>
+        <h1>{data}</h1>
+
+        {/* Display the results */}
+        {/* <div>
+          {results.map((result, index) => (
+            <div key={index}>
+              <h2>{result.title}</h2>
+              <p>Similarity Score: {result.similarity_score}</p>
+            </div>
+          ))}
+        </div> */}
       </div>
     );
   };
 
-  const Square = ({left, right, flex}) => {
+  const Square = ({ left, right, flex }) => {
     const squareStyle = {
       left: left,
       right: right,
@@ -54,65 +89,28 @@ function App() {
       flex: flex,
     };
 
-    return (
-      <div className="square" style={squareStyle}>     
-      </div>
-    );
+    return <div className="square" style={squareStyle}></div>;
   };
-  
+
   return (
-
-
     <div className="App">
-    <div className="orange-border" style={{...OrangeBorder }}></div>
+      <div className="orange-border" style={{ ...OrangeBorder }}></div>
 
-    <div className="title-container" style={{position: 'absolute'}}>
-      <h1 style={{position: 'relative', fontSize: 40, left: 30}}> Lyrics Match </h1>
-      <img src={logo} alt="Microphone Logo" style={{height: 40, width: 40, position: 'relative', left: 190, top: -70}}/>
-    </div>  
+      <div className="title-container" style={{ position: 'absolute' }}>
+        <h1 style={{ position: 'relative', fontSize: 40, left: 30 }}>Lyrics Match</h1>
+        <img src={logo} alt="Microphone Logo" style={{ height: 40, width: 40, position: 'relative', left: 190, top: -70 }} />
+      </div>
 
       <div className="search-bar-container">
-        <SearchBar></SearchBar>
+        <SearchBar />
       </div>
       <div className="albumns-container">
-      <Square></Square>
-      <Square></Square>
-      <Square></Square>
-
+        <Square />
+        <Square />
+        <Square />
       </div>
-
     </div>
   );
 }
 
 export default App;
-
-
-
-
-
-// // import logo from './logo.svg';
-// // import './App.css';
-
-// // function App() {
-// //   return (
-// //     <div className="App">
-// //       <header className="App-header">
-// //         <img src={logo} className="App-logo" alt="logo" />
-// //         <p>
-// //           Edit <code>src/App.js</code> and save to reload.
-// //         </p>
-// //         <a
-// //           className="App-link"
-// //           href="https://reactjs.org"
-// //           target="_blank"
-// //           rel="noopener noreferrer"
-// //         >
-// //           Learn React
-// //         </a>
-// //       </header>
-// //     </div>
-// //   );
-// // }
-
-// // export default App;
