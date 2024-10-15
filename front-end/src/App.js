@@ -87,23 +87,13 @@ function App() {
           required
         />
         <label htmlFor="lyrics-input" className="form__label">Lyrics:</label>
-        <h1>{data}</h1>
-
-        {/* Display the results */}
-        {/* <div>
-          {results.map((result, index) => (
-            <div key={index}>
-              <h2>{result.title}</h2>
-              <p>Similarity Score: {result.similarity_score}</p>
-            </div>
-          ))}
-        </div> */}
       </div>
     );
   };
 
   const Square = ({ title, similarityScore, albumnImageData }) => {
     const squareStyle = {
+      flex: '1 1 200px',
       top: '55%',
       padding: '10px',
       backgroundColor: 'white', // or any other style
@@ -120,8 +110,7 @@ function App() {
           alt={title} 
           style={{ width: '100%', height: 'auto' }} 
         />
-        <h2>{title}</h2>
-        <p>Similarity Score: {similarityScore}</p>
+        <p style={{color: 'white'}}>{title}</p>
       </div>
     );
   };
@@ -136,10 +125,11 @@ function App() {
         <img src={logo} alt="Microphone Logo" style={{ height: 40, width: 40, position: 'relative', left: 190, top: -70 }} />
       </div>
 
-        <div className="search-bar-container">
-          <SearchBar />
-        </div>
-        <div className="albums-container" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+      <div className="search-bar-container">
+        <SearchBar />
+      </div>
+      <div className="albums-container" style={{ position: 'absolute', top: '50%', left: '25%'}}>
+        <div className="albums" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           {results.slice(0, 3).map((result, index) => (
             <Square 
               key={index} 
@@ -150,6 +140,7 @@ function App() {
           ))}
         </div>
       </div>
+    </div>
   );
 }
 
