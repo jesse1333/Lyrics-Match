@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css'; // Import your CSS file
 import logo from './assets/microphone.svg';
 
@@ -13,10 +13,31 @@ function App() {
     marginTop: '0',
     zIndex: '-1',
   };
+  
+  const [results, setResults] = useState([]); // State to hold search results (display results)
+
+  // gets initial songs upon website launch
+  useEffect(() => {
+    const fetchRandomSongs = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/random_songs');
+        if (!response.ok) {
+          throw new Error('Failed to fetch random songs');
+        }
+        const data = await response.json();
+        setResults(data);
+      } catch (error) {
+        console.error('Error fetching random songs:', error);
+      }
+    };
+
+    fetchRandomSongs();
+  }, []); // Empty dependency array ensures this runs once on component mount
+
+  console.log(results)
 
   const SearchBar = () => {
     const [data, setData] = useState('');
-    const [results, setResults] = useState([]); // State to hold search results
 
     const inputStyle = {
       position: 'absolute',
@@ -81,35 +102,54 @@ function App() {
     );
   };
 
-  const Square = ({ left, right, flex }) => {
+  const Square = ({ title, similarityScore, albumnImageData }) => {
     const squareStyle = {
-      left: left,
-      right: right,
       top: '55%',
-      flex: flex,
+      padding: '10px',
+      backgroundColor: 'white', // or any other style
+      border: '1px solid black',
+      margin: '10px',
+      borderRadius: '5px',
+      textAlign: 'center',
     };
 
-    return <div className="square" style={squareStyle}></div>;
+    return (
+      <div className="square" style={squareStyle}>
+        <img 
+          src={`data:image/png;base64,${albumnImageData}`} 
+          alt={title} 
+          style={{ width: '100%', height: 'auto' }} 
+        />
+        <h2>{title}</h2>
+        <p>Similarity Score: {similarityScore}</p>
+      </div>
+    );
   };
 
   return (
-    <div className="App">
-      <div className="orange-border" style={{ ...OrangeBorder }}></div>
+    <div className="App" style={{ display: 'flex' }}>
 
+      <div className="orange-border" style={{ ...OrangeBorder }}></div>
+      
       <div className="title-container" style={{ position: 'absolute' }}>
         <h1 style={{ position: 'relative', fontSize: 40, left: 30 }}>Lyrics Match</h1>
         <img src={logo} alt="Microphone Logo" style={{ height: 40, width: 40, position: 'relative', left: 190, top: -70 }} />
       </div>
 
-      <div className="search-bar-container">
-        <SearchBar />
+        <div className="search-bar-container">
+          <SearchBar />
+        </div>
+        <div className="albums-container" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+          {results.slice(0, 3).map((result, index) => (
+            <Square 
+              key={index} 
+              title={result.title} 
+              similarityScore={result.similarity_score} 
+              albumnImageData={result.albumn_image_data} 
+            />
+          ))}
+        </div>
       </div>
-      <div className="albumns-container">
-        <Square />
-        <Square />
-        <Square />
-      </div>
-    </div>
   );
 }
 
